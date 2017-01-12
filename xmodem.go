@@ -77,15 +77,17 @@ func Receive(connection net.TCPConn) ([]byte, error) {
 	transmitting := true
 	message := []byte{}
 	curBlock := firstPacket
+	blockCount := 1
 
 	for transmitting == true {
 		//check the data for the valid crc - the first three bytes  are header information,
 		//we'll check them next
-		ok, err := checkCRC(firstPacket[3:])
+		ok, err := checkCRC(curBlock[3:])
 		if err != nil {
 			return []byte{}, err
 		}
-		if !ok {
+		curCount := curBlock[2]
+		if !ok || curCount != byte(blockCount) {
 			//send a NAK code
 			_, err = connection.Write([]byte{NAK})
 			if err != nil {
@@ -110,9 +112,11 @@ func Receive(connection net.TCPConn) ([]byte, error) {
 		}
 		switch curBlock[0] {
 		case STX:
+			blockCount++
 			continue
 		case EOT:
 			transmitting = false
+			break
 		}
 	}
 
