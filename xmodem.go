@@ -42,12 +42,30 @@ var crctable = []uint16{0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 
 	0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0,
 }
 
+//STX is the XMODEM-1k header start code
+var STX = byte(0x02)
+
+//NAK is the non-acknowledge code
+var NAK = byte(0x15)
+
+//ACK is the acknowledge code
+var ACK = byte(0x06)
+
+//EOT is the Ent of Transmission code
+var EOT = byte(0x04)
+
+//ETB is the End of transmission Block code
+var ETB = byte(0x17)
+
+//CAN is the cancel code
+var CAN = byte(0x18)
+
 /*
-Recieve takes a connection that has been already established and is
+Receive takes a connection that has been already established and is
 waiting for an XMODEM ACK (or 'C') command to begin XMODEM transmission.
 Will return the byte array that is recieved via XMODEM. Uses XMODEM-CRC
 */
-func Recieve(connection net.TCPConn) ([]byte, error) {
+func Receive(connection net.TCPConn) ([]byte, error) {
 
 	//Do the first packet outside of regular recpetion loop, since it's reciept is
 	//part of the transmission request
@@ -56,15 +74,66 @@ func Recieve(connection net.TCPConn) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	//check the data for the valid crc - the first three bytes  are header information,
-	//we'll check them next
-	ok, err := checkCRC(firstPacket[3:])
+	transmitting := true
+	message := []byte{}
+	curBlock := firstPacket
+
+	for transmitting == true {
+		//check the data for the valid crc - the first three bytes  are header information,
+		//we'll check them next
+		ok, err := checkCRC(firstPacket[3:])
+		if err != nil {
+			return []byte{}, err
+		}
+		if !ok {
+			//send a NAK code
+			_, err = connection.Write([]byte{NAK})
+			if err != nil {
+				return []byte{}, err
+			}
+		} else {
+			message = append(message, curBlock[3:len(curBlock)-2]...)
+			_, err = connection.Write([]byte{ACK})
+			if err != nil {
+				return []byte{}, err
+			}
+		}
+		//read the next bytes.
+		err = connection.SetReadDeadline(time.Now().Add(10 * time.Second))
+		if err != nil {
+			return []byte{}, err
+		}
+
+		_, err = connection.Read(curBlock)
+		if err != nil {
+			return []byte{}, err
+		}
+		switch curBlock[0] {
+		case STX:
+			continue
+		case EOT:
+			transmitting = false
+		}
+	}
+
+	_, err = connection.Write([]byte{ACK})
 	if err != nil {
 		return []byte{}, err
 	}
-	if !ok {
-		//we need to send a NAK
+	_, err = connection.Read(curBlock)
+	if err != nil {
+		return []byte{}, err
 	}
+	if curBlock[0] == ETB {
+
+		_, err = connection.Write([]byte{ACK})
+		if err != nil {
+			return []byte{}, err
+		}
+
+		return message, nil
+	}
+
 	return []byte{}, nil
 }
 
