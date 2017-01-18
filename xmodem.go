@@ -199,7 +199,7 @@ until a packaet is recieved, the first packet is returned.
 func requestTransmissionStart(connection net.Conn) ([]byte, error) {
 	maxAttempts := 10
 
-	//Set the timeout to 4 seconds
+	//Set the timeout to 10 seconds
 	err := connection.SetWriteDeadline(time.Now().Add(10 * time.Second))
 	if err != nil {
 		return []byte{}, err
@@ -209,7 +209,9 @@ func requestTransmissionStart(connection net.Conn) ([]byte, error) {
 	attempts := 0
 	//keep trying until either we write the bytes
 	for written != 1 {
+
 		//Ask for the CRC protocol
+		connection.SetWriteDeadline(time.Now().Add(10 * time.Second))
 		written, err = connection.Write([]byte("C"))
 		if err != nil {
 
@@ -227,7 +229,7 @@ func requestTransmissionStart(connection net.Conn) ([]byte, error) {
 		}
 	}
 
-	//Set the timeout to 4 seconds
+	//Set the timeout to 10 seconds
 	err = connection.SetReadDeadline(time.Now().Add(10 * time.Second))
 	if err != nil {
 		return []byte{}, err
