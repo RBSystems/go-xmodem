@@ -65,7 +65,7 @@ Receive takes a connection that has been already established and is
 waiting for an XMODEM ACK (or 'C') command to begin XMODEM transmission.
 Will return the byte array that is recieved via XMODEM. Uses XMODEM-CRC
 */
-func Receive(connection *net.TCPConn) ([]byte, error) {
+func Receive(connection net.Conn) ([]byte, error) {
 
 	//Do the first packet outside of regular recpetion loop, since it's reciept is
 	//part of the transmission request
@@ -191,7 +191,7 @@ func calcCRC(data []byte) uint16 {
 requestTransmissionStart sends the start character, with a timeout
 until a packaet is recieved, the first packet is returned.
 */
-func requestTransmissionStart(connection *net.TCPConn) ([]byte, error) {
+func requestTransmissionStart(connection net.Conn) ([]byte, error) {
 	maxAttempts := 10
 
 	//Set the timeout to 4 seconds
