@@ -92,7 +92,7 @@ func Receive(connection net.Conn) ([]byte, error) {
 		if err != nil {
 			return []byte{}, err
 		}
-		curCount := curBlock[2]
+		curCount := curBlock[1]
 
 		log.Printf("CurCount %v", curCount)
 		log.Printf("BlockCount %v", blockCount)
