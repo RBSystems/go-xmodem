@@ -3,6 +3,7 @@ package xmodem
 import (
 	"encoding/binary"
 	"errors"
+	"log"
 	"net"
 	"time"
 )
@@ -66,9 +67,11 @@ waiting for an XMODEM ACK (or 'C') command to begin XMODEM transmission.
 Will return the byte array that is recieved via XMODEM. Uses XMODEM-CRC
 */
 func Receive(connection net.Conn) ([]byte, error) {
+	log.Printf("Starting XModem Receive.")
 
 	//Do the first packet outside of regular recpetion loop, since it's reciept is
 	//part of the transmission request
+	log.Printf("Requesting transmission start.")
 	firstPacket, err := requestTransmissionStart(connection)
 	if err != nil {
 		return []byte{}, err
@@ -78,8 +81,10 @@ func Receive(connection net.Conn) ([]byte, error) {
 	message := []byte{}
 	curBlock := firstPacket
 	blockCount := 1
+	log.Printf("First Packet Received. %+v", firstPacket[:15])
 
 	for transmitting == true {
+		log.Printf("Reading Packet.")
 		//check the data for the valid crc - the first three bytes  are header information,
 		//we'll check them next
 		ok, err := checkCRC(curBlock[3:])
