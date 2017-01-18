@@ -81,7 +81,7 @@ func Receive(connection net.Conn) ([]byte, error) {
 	message := []byte{}
 	curBlock := firstPacket
 	blockCount := 1
-	log.Printf("First Packet Received. %+v", firstPacket[:15])
+	log.Printf("First Packet Received. %s", firstPacket[:15])
 
 	for transmitting == true {
 		log.Printf("Reading Packet.")
