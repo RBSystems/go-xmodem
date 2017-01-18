@@ -3,6 +3,7 @@ package xmodem
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"time"
@@ -105,6 +106,9 @@ func Receive(connection net.Conn) ([]byte, error) {
 				return []byte{}, err
 			}
 		}
+
+		_ = connection.SetWriteDeadline(time.Now().Add(10 * time.Second))
+
 		//read the next bytes.
 		err = connection.SetReadDeadline(time.Now().Add(10 * time.Second))
 		if err != nil {
@@ -211,7 +215,7 @@ func requestTransmissionStart(connection net.Conn) ([]byte, error) {
 	for written != 1 {
 
 		//Ask for the CRC protocol
-		connection.SetWriteDeadline(time.Now().Add(10 * time.Second))
+
 		written, err = connection.Write([]byte("C"))
 		if err != nil {
 
@@ -238,6 +242,11 @@ func requestTransmissionStart(connection net.Conn) ([]byte, error) {
 	//read the 3 header bytes plus the, 1024 bytes from the device, plus the 2 byte crc code.
 	data := make([]byte, 1030)
 	numRead, err := connection.Read(data)
+	if err != nil {
+		fmt.Printf("%+v", err.Error())
 
-	return data[:numRead], err
+		return []byte{}, err
+	}
+
+	return data[:numRead], nil
 }
