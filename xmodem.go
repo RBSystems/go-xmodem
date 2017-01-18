@@ -94,13 +94,20 @@ func Receive(connection net.Conn) ([]byte, error) {
 		}
 		curCount := curBlock[2]
 		if !ok || curCount != byte(blockCount) {
+			log.Printf("Not enough bytes, sending NAK")
+
 			//send a NAK code
+			_ = connection.SetWriteDeadline(time.Now().Add(10 * time.Second))
 			_, err = connection.Write([]byte{NAK})
+
 			if err != nil {
+				log.Printf("Not enough bytes, sending NAK")
 				return []byte{}, err
 			}
 		} else {
 			message = append(message, curBlock[3:len(curBlock)-2]...)
+			_ = connection.SetWriteDeadline(time.Now().Add(10 * time.Second))
+
 			_, err = connection.Write([]byte{ACK})
 			if err != nil {
 				return []byte{}, err
@@ -117,6 +124,7 @@ func Receive(connection net.Conn) ([]byte, error) {
 
 		_, err = connection.Read(curBlock)
 		if err != nil {
+			log.Printf("Read timeout")
 			return []byte{}, err
 		}
 		switch curBlock[0] {
@@ -131,16 +139,20 @@ func Receive(connection net.Conn) ([]byte, error) {
 
 	_, err = connection.Write([]byte{ACK})
 	if err != nil {
+		log.Printf("Write timeout.")
 		return []byte{}, err
 	}
 	_, err = connection.Read(curBlock)
 	if err != nil {
+		log.Printf("Read timeout.")
 		return []byte{}, err
 	}
 	if curBlock[0] == ETB {
 
 		_, err = connection.Write([]byte{ACK})
+
 		if err != nil {
+			log.Printf("Write timeout.")
 			return []byte{}, err
 		}
 
