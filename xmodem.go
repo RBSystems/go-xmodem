@@ -191,7 +191,7 @@ func calcCRC(data []byte) uint16 {
 requestTransmissionStart sends the start character, with a timeout
 until a packaet is recieved, the first packet is returned.
 */
-func requestTransmissionStart(connection net.TCPConn) ([]byte, error) {
+func requestTransmissionStart(connection *net.TCPConn) ([]byte, error) {
 	maxAttempts := 10
 
 	//Set the timeout to 4 seconds
