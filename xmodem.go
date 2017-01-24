@@ -147,7 +147,7 @@ func Receive(connection net.Conn) ([]byte, error) {
 		log.Printf("Read timeout.")
 		return []byte{}, err
 	}
-	if curBlock[0] == ETB {
+	if curBlock[0] == ETB || curBlock[0] == EOT {
 
 		_, err = connection.Write([]byte{ACK})
 
@@ -159,7 +159,7 @@ func Receive(connection net.Conn) ([]byte, error) {
 		return message, nil
 	}
 
-	return []byte{}, nil
+	return message, nil
 }
 
 /*
