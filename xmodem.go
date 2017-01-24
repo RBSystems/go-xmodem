@@ -85,7 +85,7 @@ func Receive(connection net.Conn) ([]byte, error) {
 	log.Printf("First Packet Received. %s", firstPacket[:15])
 
 	for transmitting == true {
-		log.Printf("Reading Packet.")
+		//log.Printf("Reading Packet.")
 		//check the data for the valid crc - the first three bytes  are header information,
 		//we'll check them next
 		ok, err := checkCRC(curBlock[3:])
