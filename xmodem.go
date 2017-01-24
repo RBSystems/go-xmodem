@@ -94,8 +94,8 @@ func Receive(connection net.Conn) ([]byte, error) {
 		}
 		curCount := curBlock[1]
 
-		log.Printf("CurCount %v", curCount)
-		log.Printf("BlockCount %v", blockCount)
+		//log.Printf("CurCount %v", curCount)
+		//log.Printf("BlockCount %v", blockCount)
 
 		if !ok || curCount != byte(blockCount) {
 			log.Printf("Not enough bytes, sending NAK")
